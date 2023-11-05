@@ -12,7 +12,11 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     // origin:["firebase_host_link"],
-    origin: ["http://localhost:5173"],
+    origin: [
+      // 'http://localhost:5173',
+      "https: //careervolt-f325b.web.app/",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );
@@ -37,7 +41,6 @@ async function run() {
 
     const XCollection = client.db("careerVoltDB").collection("X");
     const YCollection = client.db("careerVoltDB").collection("Y");
-
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
