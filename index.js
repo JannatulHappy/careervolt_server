@@ -14,7 +14,7 @@ app.use(
     // origin:["firebase_host_link"],
     origin: [
       // 'http://localhost:5173',
-      "https: //careervolt-f325b.web.app/",
+      "https://careervolt-f325b.web.app",
       "http://localhost:5173",
     ],
     credentials: true,
@@ -39,9 +39,25 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const XCollection = client.db("careerVoltDB").collection("X");
-    const YCollection = client.db("careerVoltDB").collection("Y");
-
+    const jobsCollection = client.db("careerVoltDB").collection("jobs");
+    // const YCollection = client.db("careerVoltDB").collection("Y");
+    app.get("/api/v1/user/jobs", async (req, res) => {
+      const result = await jobsCollection.find().toArray();
+      // console.log(result);
+      res.send(result);
+    });
+    // get single jobs using id
+    app.get("/api/v1/user/singleJob/:id", async (req, res) => {
+      const id = req.params.id;
+     
+      const query = {
+        _id: new ObjectId(id),
+      };
+     
+      const result = await jobsCollection.findOne(query);
+      // console.log(result);
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
@@ -52,6 +68,7 @@ async function run() {
     // await client.close();
   }
 }
+
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
