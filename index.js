@@ -59,15 +59,24 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
-    // post single bid
-    // post single data endpoint
+  
+    // post single  job data endpoint
     app.post("/api/v1/candidate/bids", async (req, res) => {
-      const bidsData = req.body;
+      const jobData = req.body;
       console.log(" bids", bidsData)
-      const result = await bidsCollection.insertOne(bidsData);
+      const result = await jobsCollection.insertOne(jobData);
       console.log(result);
       res.status(200).send(result);
     });
+    // post single data endpoint
+    app.post("/api/v1/employer/addJob", async (req, res) => {
+      const bidsData = req.body;
+      console.log(" bids", bidsData)
+      const result = await jobsCollection.insertOne(bidsData);
+      console.log(result);
+      res.status(200).send(result);
+    });
+    // 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
