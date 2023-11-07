@@ -40,6 +40,7 @@ async function run() {
     await client.connect();
 
     const jobsCollection = client.db("careerVoltDB").collection("jobs");
+    const bidsCollection = client.db("careerVoltDB").collection("bids");
     // const YCollection = client.db("careerVoltDB").collection("Y");
     app.get("/api/v1/user/jobs", async (req, res) => {
       const result = await jobsCollection.find().toArray();
@@ -47,16 +48,25 @@ async function run() {
       res.send(result);
     });
     // get single jobs using id
-    app.get("/api/v1/user/singleJob/:id", async (req, res) => {
+    app.get("/api/v1/user/jobs/:id", async (req, res) => {
       const id = req.params.id;
-     
+
       const query = {
         _id: new ObjectId(id),
       };
-     
+
       const result = await jobsCollection.findOne(query);
       // console.log(result);
       res.send(result);
+    });
+    // post single bid
+    // post single data endpoint
+    app.post("/api/v1/candidate/bids", async (req, res) => {
+      const bidsData = req.body;
+      console.log(" bids", bidsData)
+      const result = await bidsCollection.insertOne(bidsData);
+      console.log(result);
+      res.status(200).send(result);
     });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
