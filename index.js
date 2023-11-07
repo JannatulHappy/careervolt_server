@@ -47,6 +47,7 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
+    //
     // get single jobs using id
     app.get("/api/v1/user/jobs/:id", async (req, res) => {
       const id = req.params.id;
@@ -59,24 +60,39 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
-  
+    // employer
     // post single  job data endpoint
     app.post("/api/v1/candidate/bids", async (req, res) => {
-      const jobData = req.body;
-      console.log(" bids", bidsData)
-      const result = await jobsCollection.insertOne(jobData);
+      const bidsData = req.body;
+      console.log(" bids", bidsData);
+      const result = await bidsCollection.insertOne(bidsData);
       console.log(result);
       res.status(200).send(result);
     });
+
     // post single data endpoint
     app.post("/api/v1/employer/addJob", async (req, res) => {
       const bidsData = req.body;
-      console.log(" bids", bidsData)
+      console.log(" bids", bidsData);
       const result = await jobsCollection.insertOne(bidsData);
       console.log(result);
       res.status(200).send(result);
     });
-    // 
+    // get jobs of added by logged user
+
+    app.get("/api/v1/employer/postedJobs/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log("email", email);
+      const query = {
+        Job_poster_email: email,
+      };
+      const result = await jobsCollection.find(query).toArray();
+      console.log("result", result);
+      res.send(result);
+    });
+    // delete from job collection by a employer
+   
+    //
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
