@@ -108,7 +108,7 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
-    // update  single job data by employer
+    // update  single job data by employer which he/she has posted
      app.put("/api/v1/employer/myPostedJobs/update/:id", async (req, res) => {
        const id = req.params.id;
        const data = req.body;
@@ -136,8 +136,8 @@ async function run() {
        console.log(result);
        res.send(result);
      });
-    // delete from job collection by a employer
-    // delete single cart item
+    // delete a  posted job from job collection by a employer
+    // delete single posted job
     app.delete("/api/v1/employer/delete/:id", async (req, res) => {
       const id = req.params.id;
 
@@ -148,7 +148,7 @@ async function run() {
       console.log(result);
       res.status(200).send(result);
     });
-    // update single job
+   
 
    
     //
