@@ -42,12 +42,14 @@ async function run() {
     const jobsCollection = client.db("careerVoltDB").collection("jobs");
     const bidsCollection = client.db("careerVoltDB").collection("bids");
     // const YCollection = client.db("careerVoltDB").collection("Y");
+
+    // get all jobs
     app.get("/api/v1/user/jobs", async (req, res) => {
       const result = await jobsCollection.find().toArray();
       // console.log(result);
       res.send(result);
     });
-    //
+
     // get single jobs using id
     app.get("/api/v1/user/jobs/:id", async (req, res) => {
       const id = req.params.id;
@@ -60,26 +62,27 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
-    // employer
-    // post single  job data endpoint
+
+    // place you bid form from details page
+    // post single  place bid  data endpoint
     app.post("/api/v1/candidate/bids", async (req, res) => {
       const bidsData = req.body;
       console.log(" bids", bidsData);
       const result = await bidsCollection.insertOne(bidsData);
-      console.log(result);
       res.status(200).send(result);
     });
 
+    // add job by employer for candidate
     // post single data endpoint
     app.post("/api/v1/employer/addJob", async (req, res) => {
-      const bidsData = req.body;
-      console.log(" bids", bidsData);
-      const result = await jobsCollection.insertOne(bidsData);
-      console.log(result);
+      const jobData = req.body;
+      // console.log(jobData);
+      const result = await jobsCollection.insertOne(jobData);
+
       res.status(200).send(result);
     });
-    // get jobs of added by logged user
 
+    // get jobs -- added by logged user
     app.get("/api/v1/employer/postedJobs/:email", async (req, res) => {
       const email = req.params.email;
       console.log("email", email);
@@ -87,10 +90,66 @@ async function run() {
         Job_poster_email: email,
       };
       const result = await jobsCollection.find(query).toArray();
-      console.log("result", result);
+
       res.send(result);
     });
+
+
+    // get single posted job for update job
+
+    app.get("/api/v1/employer/singlePostedJobs/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const query = {
+        _id: new ObjectId(id),
+      };
+
+      const result = await jobsCollection.findOne(query);
+      // console.log(result);
+      res.send(result);
+    });
+    // update  single job data by employer
+     app.put("/api/v1/employer/myPostedJobs/update/:id", async (req, res) => {
+       const id = req.params.id;
+       const data = req.body;
+       console.log(data);
+       const filter = {
+         _id: new ObjectId(id),
+       };
+       const options = { upsert: true };
+       const updatedData = {
+         $set: {
+           Job_title: data.Job_title,
+           Deadline: data.Deadline,
+           Category: data.Category,
+           Short_description: data.Short_description,
+           Category: data.Category,
+           minPrice: data.minPrice,
+           maxPrice: data.maxPrice,
+         },
+       };
+       const result = await jobsCollection.updateOne(
+         filter,
+         updatedData,
+         options
+       );
+       console.log(result);
+       res.send(result);
+     });
     // delete from job collection by a employer
+    // delete single cart item
+    app.delete("/api/v1/employer/delete/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const result = await jobsCollection.deleteOne(query);
+      console.log(result);
+      res.status(200).send(result);
+    });
+    // update single job
+
    
     //
     // Send a ping to confirm a successful connection
