@@ -98,9 +98,37 @@ async function run() {
       const email = req.params.email;
       console.log("email", email);
       const query = {
-        Job_Owner_email: email,
+        Job_poster_email: email,
       };
       const result = await bidsCollection.find(query).toArray();
+
+      res.send(result);
+    });
+    // // get all the bids  made by logged candidate
+    // app.get("/api/v1/candidate/myBids/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   console.log("email", email);
+    //   const query = {
+    //     Candidate_email: email,
+    //   };
+    //   const result = await bidsCollection.find(query).toArray();
+
+    //   res.send(result);
+    // });
+    // Get all the bids made by a logged candidate, sorted by status in ascending order
+    app.get("/api/v1/candidate/myBids/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log("email", email);
+      const query = {
+        Candidate_email: email,
+      };
+
+      // Add the sorting operation to the MongoDB query
+      const sortCriteria = { status: 1 }; // 1 for ascending order
+      const result = await bidsCollection
+        .find(query)
+        .sort(sortCriteria)
+        .toArray();
 
       res.send(result);
     });
