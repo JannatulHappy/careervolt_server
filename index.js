@@ -105,7 +105,6 @@ async function run() {
       res.send(result);
     });
 
-
     // get single posted job for update job
 
     app.get("/api/v1/employer/singlePostedJobs/:id", async (req, res) => {
@@ -120,33 +119,92 @@ async function run() {
       res.send(result);
     });
     // update  single job data by employer which he/she has posted
-     app.put("/api/v1/employer/myPostedJobs/update/:id", async (req, res) => {
-       const id = req.params.id;
-       const data = req.body;
-       console.log(data);
-       const filter = {
-         _id: new ObjectId(id),
-       };
-       const options = { upsert: true };
-       const updatedData = {
-         $set: {
-           Job_title: data.Job_title,
-           Deadline: data.Deadline,
-           Category: data.Category,
-           Short_description: data.Short_description,
-           Category: data.Category,
-           minPrice: data.minPrice,
-           maxPrice: data.maxPrice,
-         },
-       };
-       const result = await jobsCollection.updateOne(
-         filter,
-         updatedData,
-         options
-       );
-       console.log(result);
-       res.send(result);
-     });
+    app.put("/api/v1/employer/myPostedJobs/update/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      console.log(id, data);
+      const filter = {
+        _id: new ObjectId(id),
+      };
+      const options = { upsert: true };
+      const updatedData = {
+        $set: {
+          Job_title: data.Job_title,
+          Deadline: data.Deadline,
+          Category: data.Category,
+          Short_description: data.Short_description,
+          Category: data.Category,
+          minPrice: data.minPrice,
+          maxPrice: data.maxPrice,
+        },
+      };
+      const result = await jobsCollection.updateOne(
+        filter,
+        updatedData,
+        options
+      );
+      console.log(result);
+      res.send(result);
+    });
+    // // update  status of single jobs by job posted owner
+    //  app.put("/api/v1/employer/bidRequests/update/:id", async (req, res) => {
+    //    const id = req.params.id;
+    //    const data = req.body;
+    //    console.log(id,data,"id of bid req");
+    //    const filter = {
+    //      _id: new ObjectId(id),
+    //    };
+    //    const options = { upsert: true };
+    //    const updatedData = {
+    //      $set: {
+    //        status: data.status,
+
+    //      },
+    //    };
+    //    const result = await bidsCollection.updateOne(
+    //      filter,
+    //      updatedData,
+    //      options
+    //    );
+    //    console.log(result);
+    //    res.send(result);
+    //  });
+
+    // Import ObjectId from the MongoDB driver
+
+    app.put("/api/v1/employer/bidRequests/update/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+
+        // Check if the id is a valid ObjectId
+        if (!ObjectId.isValid(id)) {
+          return res.status(400).send("Invalid ObjectId format.");
+        }
+
+        const data = req.body;
+        console.log(id, data, "id of bid req");
+        const filter = {
+          _id: new ObjectId(id), // Convert id to a valid ObjectId
+        };
+        const updatedData = {
+          $set: {
+            status: data.status,
+          },
+        };
+        const result = await bidsCollection.updateOne(filter, updatedData);
+
+        if (result.matchedCount === 0) {
+          return res.status(404).send("Document not found.");
+        }
+
+        console.log(result);
+        res.send("Update successful");
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
+
     // delete a  posted job from job collection by a employer
     // delete single posted job
     app.delete("/api/v1/employer/delete/:id", async (req, res) => {
@@ -159,9 +217,7 @@ async function run() {
       console.log(result);
       res.status(200).send(result);
     });
-   
 
-   
     //
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
