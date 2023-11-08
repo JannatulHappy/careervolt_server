@@ -93,6 +93,17 @@ async function run() {
 
       res.send(result);
     });
+    // get the bid requests made by the logged user or job owner
+    app.get("/api/v1/employer/bidRequests/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log("email", email);
+      const query = {
+        Job_Owner_email: email,
+      };
+      const result = await bidsCollection.find(query).toArray();
+
+      res.send(result);
+    });
 
 
     // get single posted job for update job
