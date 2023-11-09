@@ -7,21 +7,21 @@ require("dotenv").config();
 const app = express();
 
 const port = process.env.PORT || 5000;
-
+app.use(express.json());
+app.use(cookieParser());
 // middleware
 app.use(
   cors({
     // origin:["firebase_host_link"],
     origin: [
       // 'http://localhost:5173',
+      "https://careervolt-f325b.firebaseapp.com",
       "https://careervolt-f325b.web.app",
       "http://localhost:5173",
     ],
     credentials: true,
   })
 );
-app.use(express.json());
-app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.wlf4d.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -34,35 +34,37 @@ const client = new MongoClient(uri, {
   },
 });
 
+// middlewares
+const logger = (req, res, next) => {
+  console.log("log: info", req.method, req.url);
+  next();
+};
 
-// middlewares 
-const logger = (req, res, next) =>{
-    console.log('log: info', req.method, req.url);
-    next();
-}
-
-const verifyToken = (req, res, next) =>{
-    const token = req?.cookies?.token;
-    // console.log('token in the middleware', token);
-    // no token available 
-    if(!token){
-        return res.status(401).send({message: 'unauthorized access'})
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  // console.log('token in the middleware', token);
+  // no token available
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unauthorized access" });
     }
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) =>{
-        if(err){
-            return res.status(401).send({message: 'unauthorized access'})
-        }
-        req.user = decoded;
-        next();
-    })
-}
+    req.user = decoded;
+    next();
+  });
+};
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const jobsCollection = client.db("careerVoltDB").collection("jobs");
     const bidsCollection = client.db("careerVoltDB").collection("bids");
+    const testimonialsCollection = client
+      .db("careerVoltDB")
+      .collection("testimonial");
     // auth related api
     app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
@@ -70,7 +72,6 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, {
         expiresIn: "1h",
       });
-
       res
         .cookie("token", token, {
           httpOnly: true,
@@ -78,18 +79,37 @@ async function run() {
           sameSite: "none",
         })
         .send({ success: true });
+      // res
+      //   .cookie("token", token, {
+      //     httpOnly: true,
+      //     secure: true,
+      //     sameSite: "none",
+      //   })
+      //   .send({ success: true ,say:"from post"});
     });
 
     app.post("/logout", async (req, res) => {
       const user = req.body;
       console.log("logging out", user);
-      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+      res
+        .clearCookie("token", {
+          maxAge: 0,
+          secure: true,
+          sameSite: "none",
+        })
+        .send({ success: true });
     });
 
     // get all jobs
     app.get("/api/v1/user/jobs", async (req, res) => {
       const result = await jobsCollection.find().toArray();
       // console.log(result);
+      res.send(result);
+    });
+    // get all testimonial post by user
+    app.get("/api/v1/user/testimonials", async (req, res) => {
+      const result = await testimonialsCollection.find().toArray();
+      console.log(result);
       res.send(result);
     });
 
@@ -110,6 +130,7 @@ async function run() {
     // post single  place bid  data endpoint
     app.post("/api/v1/candidate/bids", async (req, res) => {
       const bidsData = req.body;
+
       console.log(" bids", bidsData);
       const result = await bidsCollection.insertOne(bidsData);
       res.status(200).send(result);
@@ -124,10 +145,21 @@ async function run() {
 
       res.status(200).send(result);
     });
+    // add testimonial by user
+    // post single data endpoint
+    app.post("/api/v1/user/addTestimonial", async (req, res) => {
+      const testimonialData = req.body;
+      console.log(testimonialData)
+      // console.log(jobData);
+      const result = await testimonialsCollection.insertOne(testimonialData);
+      console.log("result",result)
+      res.status(200).send(result);
+    });
 
     // get jobs -- added by logged user
     app.get("/api/v1/employer/postedJobs/:email", async (req, res) => {
       const email = req.params.email;
+      console.log("email", email);
       console.log("email", email);
       const query = {
         Job_poster_email: email,
@@ -139,6 +171,7 @@ async function run() {
     // get the bid requests made by the logged user or job owner
     app.get("/api/v1/employer/bidRequests/:email", async (req, res) => {
       const email = req.params.email;
+      console.log("cookie", req.cookies);
       console.log("email", email);
       const query = {
         Job_poster_email: email,
@@ -161,7 +194,9 @@ async function run() {
     // Get all the bids made by a logged candidate, sorted by status in ascending order
     app.get("/api/v1/candidate/myBids/:email", async (req, res) => {
       const email = req.params.email;
-      console.log("email", email);
+
+      console.log("emailbids", email);
+      console.log("token asce?", req.cookies);
       const query = {
         Candidate_email: email,
       };
@@ -289,12 +324,11 @@ async function run() {
       res.status(200).send(result);
     });
 
-    //
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // // Send a ping to confirm a successful connection
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
