@@ -10,13 +10,25 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 // middleware
+// app.use(
+//   cors({
+//     // origin:["firebase_host_link"],
+//     origin: [
+//       // 'http://localhost:5173',
+//       "https://careervolt-f325b.firebaseapp.com",
+//       "https://careervolt-f325b.web.app",
+//       "http://localhost:5173",
+//     ],
+//     credentials: true,
+//   })
+// );
 app.use(
   cors({
     // origin:["firebase_host_link"],
     origin: [
       // 'http://localhost:5173',
-      "https://careervolt-f325b.firebaseapp.com",
-      "https://careervolt-f325b.web.app",
+      "https://career-volt-02.firebaseapp.com",
+      "https://career-volt-02.web.app",
       "http://localhost:5173",
     ],
     credentials: true,
@@ -66,7 +78,7 @@ async function run() {
       .db("careerVoltDB")
       .collection("testimonial");
     // auth related api
-    app.post("/jwt", logger, async (req, res) => {
+    app.post("/api/v1/jwt", logger, async (req, res) => {
       const user = req.body;
       console.log("user for token", user);
       const token = jwt.sign(user, process.env.ACCESS_SECRET_TOKEN, {
@@ -88,7 +100,7 @@ async function run() {
       //   .send({ success: true ,say:"from post"});
     });
 
-    app.post("/logout", async (req, res) => {
+    app.post("/api/v1/logout", async (req, res) => {
       const user = req.body;
       console.log("logging out", user);
       res
@@ -131,7 +143,7 @@ async function run() {
     app.post("/api/v1/candidate/bids", async (req, res) => {
       const bidsData = req.body;
 
-      console.log(" bids", bidsData);
+      // console.log(" bids", bidsData);
       const result = await bidsCollection.insertOne(bidsData);
       res.status(200).send(result);
     });
@@ -194,7 +206,7 @@ async function run() {
     // Get all the bids made by a logged candidate, sorted by status in ascending order
     app.get("/api/v1/candidate/myBids/:email", async (req, res) => {
       const email = req.params.email;
-
+console.log("token", req.cookies.token);
       console.log("emailbids", email);
       console.log("token asce?", req.cookies);
       const query = {
