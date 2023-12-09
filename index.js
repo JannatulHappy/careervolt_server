@@ -27,8 +27,8 @@ app.use(
     // origin:["firebase_host_link"],
     origin: [
       // 'http://localhost:5173',
-      "https://career-volt-02.firebaseapp.com",
-      "https://career-volt-02.web.app",
+      "https://careervolt-01.firebaseapp.com",
+      "https://careervolt-01.web.app",
       "http://localhost:5173",
     ],
     credentials: true,
